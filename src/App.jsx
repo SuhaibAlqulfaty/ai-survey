@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx'
@@ -34,658 +34,961 @@ import {
   Search,
   ArrowUpRight,
   ArrowDownRight,
-  Minus
+  Minus,
+  Eye,
+  Save,
+  Sparkles,
+  Settings,
+  Copy,
+  Trash2,
+  X,
+  Plus,
+  CheckSquare,
+  Send,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Target,
+  Zap,
+  Globe,
+  Mail,
+  Smartphone,
+  Share2,
+  Code,
+  Bell,
+  Shield,
+  Calendar,
+  FileText,
+  Edit3,
+  PlayCircle
 } from 'lucide-react'
 import './App.css'
 
-// Enhanced sample data for the dashboard
-const sampleData = {
-  metrics: {
-    nps: 42,
-    npsTrend: 3,
-    csat: 85,
-    csatTrend: 2,
-    totalResponses: 1247,
-    responseTrend: 156,
-    responseRate: 68,
-    responseRateTrend: -2
-  },
-  sentiment: [
-    { name: 'Positive', value: 65, color: '#00B050', count: 810 },
-    { name: 'Neutral', value: 25, color: '#94A3B8', count: 312 },
-    { name: 'Negative', value: 10, color: '#EF4444', count: 125 }
-  ],
-  themes: [
-    { name: 'Support', count: 234, sentiment: 'positive', percentage: 18.8 },
-    { name: 'Pricing', count: 189, sentiment: 'neutral', percentage: 15.2 },
-    { name: 'UI/UX', count: 156, sentiment: 'positive', percentage: 12.5 },
-    { name: 'Performance', count: 98, sentiment: 'negative', percentage: 7.9 },
-    { name: 'Features', count: 87, sentiment: 'positive', percentage: 7.0 },
-    { name: 'Bugs', count: 45, sentiment: 'negative', percentage: 3.6 }
-  ],
-  recentFeedback: [
-    { id: 1, text: "Great customer service, very responsive team!", sentiment: 'positive', user: 'User #aB3xZ9qR', time: '2 minutes ago', nps: 9 },
-    { id: 2, text: "The new dashboard is confusing and hard to navigate", sentiment: 'negative', user: 'User #kL8mN4pQ', time: '5 minutes ago', nps: 4 },
-    { id: 3, text: "Pricing is reasonable for the features provided", sentiment: 'positive', user: 'User #wX7yZ2vB', time: '8 minutes ago', nps: 8 },
-    { id: 4, text: "Loading times have improved significantly", sentiment: 'positive', user: 'User #dF5gH9jK', time: '12 minutes ago', nps: 7 },
-    { id: 5, text: "Would love to see more integrations with third-party tools", sentiment: 'neutral', user: 'User #mN9oP3qR', time: '15 minutes ago', nps: 6 }
-  ],
-  npsOverTime: [
-    { month: 'Jan', score: 38, responses: 980 },
-    { month: 'Feb', score: 41, responses: 1050 },
-    { month: 'Mar', score: 39, responses: 1120 },
-    { month: 'Apr', score: 44, responses: 1180 },
-    { month: 'May', score: 42, responses: 1210 },
-    { month: 'Jun', score: 42, responses: 1247 }
-  ],
-  alerts: [
-    { id: 1, type: 'critical', message: 'VIP customer gave low NPS score', time: '5 minutes ago' },
-    { id: 2, type: 'warning', message: 'Negative sentiment spike in "Performance" theme', time: '1 hour ago' },
-    { id: 3, type: 'info', message: 'Response rate increased by 12% this week', time: '2 hours ago' }
+export default function App() {
+  const [activeView, setActiveView] = useState('overview')
+  const [aiGoal, setAiGoal] = useState('customer satisfaction with our mobile app and user experience feedback')
+  const [aiAudience, setAiAudience] = useState('existing_customers')
+  const [aiLength, setAiLength] = useState('short')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generatedQuestions, setGeneratedQuestions] = useState([])
+
+  const generateQuestionsWithAI = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{
+            role: 'system',
+            content: 'You are a professional survey designer. Generate survey questions based on the provided goal, audience, and length. Return a JSON array of questions with type, text, and options (if applicable).'
+          }, {
+            role: 'user',
+            content: `Generate ${aiLength === 'short' ? '5-8' : aiLength === 'medium' ? '10-15' : '15+'} survey questions for: ${aiGoal}. Target audience: ${aiAudience}. Include a mix of NPS, rating, multiple choice, and text questions.`
+          }],
+          temperature: 0.7,
+          max_tokens: 1500
+        })
+      })
+      
+      const data = await response.json()
+      const questions = JSON.parse(data.choices[0].message.content)
+      setGeneratedQuestions(questions)
+    } catch (error) {
+      console.error('Error generating questions:', error)
+      setGeneratedQuestions([
+        { type: 'nps', text: 'How likely are you to recommend our mobile app?', explanation: 'Standard NPS question to measure customer loyalty' },
+        { type: 'rating', text: 'How would you rate the overall user experience?', explanation: 'Measures satisfaction with app usability' },
+        { type: 'multiple', text: 'Which features do you use most frequently?', options: ['Dashboard', 'Reports', 'Settings', 'Support'], explanation: 'Identifies popular features for prioritization' }
+      ])
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  // Sample data for charts
+  const npsData = [
+    { score: 0, count: 12 }, { score: 1, count: 8 }, { score: 2, count: 15 },
+    { score: 3, count: 22 }, { score: 4, count: 31 }, { score: 5, count: 45 },
+    { score: 6, count: 67 }, { score: 7, count: 156 }, { score: 8, count: 234 },
+    { score: 9, count: 312 }, { score: 10, count: 347 }
   ]
-}
 
-function App() {
-  const [activeTab, setActiveTab] = useState('summary')
-  const [selectedTheme, setSelectedTheme] = useState(null)
+  const sentimentData = [
+    { name: 'Positive', value: 810, color: '#00B050' },
+    { name: 'Neutral', value: 312, color: '#9CA3AF' },
+    { name: 'Negative', value: 125, color: '#EF4444' }
+  ]
 
-  const getSentimentColor = (sentiment) => {
-    switch (sentiment) {
-      case 'positive': return 'text-green-600'
-      case 'negative': return 'text-red-600'
-      default: return 'text-gray-600'
-    }
-  }
+  const themesData = [
+    { theme: 'Bugs', count: 89 },
+    { theme: 'Features', count: 156 },
+    { theme: 'Performance', count: 134 },
+    { theme: 'UI/UX', count: 98 },
+    { theme: 'Pricing', count: 67 },
+    { theme: 'Support', count: 123 }
+  ]
 
-  const getSentimentIcon = (sentiment) => {
-    switch (sentiment) {
-      case 'positive': return <CheckCircle className="w-4 h-4 text-green-600" />
-      case 'negative': return <AlertCircle className="w-4 h-4 text-red-600" />
-      default: return <Clock className="w-4 h-4 text-gray-600" />
-    }
-  }
+  const trendData = [
+    { month: 'Jan', nps: 38 }, { month: 'Feb', nps: 35 }, { month: 'Mar', nps: 39 },
+    { month: 'Apr', nps: 41 }, { month: 'May', nps: 40 }, { month: 'Jun', nps: 42 }
+  ]
 
-  const getTrendIcon = (trend) => {
-    if (trend > 0) return <ArrowUpRight className="w-4 h-4 text-green-600" />
-    if (trend < 0) return <ArrowDownRight className="w-4 h-4 text-red-600" />
-    return <Minus className="w-4 h-4 text-gray-600" />
-  }
-
-  const getTrendColor = (trend) => {
-    if (trend > 0) return 'text-green-600'
-    if (trend < 0) return 'text-red-600'
-    return 'text-gray-600'
-  }
-
-  const handleThemeClick = (theme) => {
-    setSelectedTheme(selectedTheme === theme.name ? null : theme.name)
-  }
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-border rounded-lg shadow-lg">
-          <p className="font-medium">{`${label}: ${payload[0].value}`}</p>
-          {payload[0].payload.percentage && (
-            <p className="text-sm text-muted-foreground">{`${payload[0].payload.percentage}% of total`}</p>
-          )}
-        </div>
-      )
-    }
-    return null
-  }
+  const responses = [
+    { id: '#0001', date: '2024-06-15 15:58', user: 'User #aB3xZ9qR', nps: 9, sentiment: 'Positive', feedback: 'Great customer service, very responsive team!' },
+    { id: '#0002', date: '2024-06-15 15:56', user: 'User #kL8mN4pQ', nps: 3, sentiment: 'Negative', feedback: 'The new dashboard is confusing and hard to navigate' },
+    { id: '#0003', date: '2024-06-15 15:54', user: 'User #wX7yZ2vB', nps: 8, sentiment: 'Positive', feedback: 'Pricing is reasonable for the features provided' },
+    { id: '#0004', date: '2024-06-15 15:52', user: 'User #dF5gH9jK', nps: 7, sentiment: 'Positive', feedback: 'Loading times have improved significantly' },
+    { id: '#0005', date: '2024-06-15 15:50', user: 'User #mN9oP3qR', nps: 6, sentiment: 'Neutral', feedback: 'Would love to see more integrations with third-party tools' }
+  ]
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <div className="engage-gradient text-white px-4 py-2 rounded-lg font-bold text-xl">
-                Engage.sa
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Survey Results Dashboard
-              </div>
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="bg-green-600 text-white px-3 py-1 rounded-lg font-bold text-lg">
+              Engage.sa
             </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="text-primary border-primary animate-pulse">
-                <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                Live Data
-              </Badge>
-              <Button variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </div>
+            <h1 className="text-xl font-semibold text-gray-900">Survey Platform</h1>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Live Data
+            </Badge>
+            <Button variant="outline" size="sm">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
           </div>
         </div>
       </header>
 
+      {/* Navigation */}
+      <div className="bg-white border-b border-gray-200 px-6">
+        <nav className="flex space-x-8">
+          <button
+            onClick={() => setActiveView('overview')}
+            className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              activeView === 'overview'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 inline mr-2" />
+            Dashboard Overview
+          </button>
+          <button
+            onClick={() => setActiveView('create')}
+            className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              activeView === 'create'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Plus className="w-4 h-4 inline mr-2" />
+            Create Survey
+          </button>
+          <button
+            onClick={() => setActiveView('analytics')}
+            className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              activeView === 'analytics'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Target className="w-4 h-4 inline mr-2" />
+            Analytics
+          </button>
+          <button
+            onClick={() => setActiveView('responses')}
+            className={`py-4 px-2 border-b-2 font-medium text-sm ${
+              activeView === 'responses'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 inline mr-2" />
+            Responses
+          </button>
+        </nav>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Tab Navigation */}
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-            <TabsTrigger value="summary">Summary</TabsTrigger>
-            <TabsTrigger value="breakdown">Question Breakdown</TabsTrigger>
-            <TabsTrigger value="responses">Responses</TabsTrigger>
-          </TabsList>
-
-          {/* Summary Tab */}
-          <TabsContent value="summary" className="space-y-6">
-            {/* Alerts Section */}
-            {sampleData.alerts.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {sampleData.alerts.map((alert) => (
-                  <Card key={alert.id} className={`border-l-4 ${
-                    alert.type === 'critical' ? 'border-l-red-500 bg-red-50' :
-                    alert.type === 'warning' ? 'border-l-yellow-500 bg-yellow-50' :
-                    'border-l-blue-500 bg-blue-50'
-                  }`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-3">
-                        <AlertCircle className={`w-5 h-5 mt-0.5 ${
-                          alert.type === 'critical' ? 'text-red-600' :
-                          alert.type === 'warning' ? 'text-yellow-600' :
-                          'text-blue-600'
-                        }`} />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">{alert.message}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{alert.time}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-
-            {/* Key Metrics Row */}
+      <main className="p-6">
+        {activeView === 'overview' && (
+          <div className="space-y-6">
+            {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Net Promoter Score</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-2xl font-bold text-primary">{sampleData.metrics.nps}</div>
-                    <div className="flex items-center space-x-1">
-                      {getTrendIcon(sampleData.metrics.npsTrend)}
-                      <span className={`text-sm ${getTrendColor(sampleData.metrics.npsTrend)}`}>
-                        {Math.abs(sampleData.metrics.npsTrend)}
-                      </span>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Active Surveys</p>
+                      <p className="text-2xl font-bold text-gray-900">12</p>
+                    </div>
+                    <div className="bg-green-100 p-3 rounded-full">
+                      <FileText className="w-6 h-6 text-green-600" />
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-primary h-2 rounded-full transition-all duration-500" 
-                        style={{ width: `${(sampleData.metrics.nps + 100) / 2}%` }}
-                      ></div>
-                    </div>
+                  <div className="mt-4 flex items-center text-sm">
+                    <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+                    <span className="text-green-600">+2 this month</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    from last month
-                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Customer Satisfaction</CardTitle>
-                  <Star className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-2xl font-bold text-primary">{sampleData.metrics.csat}%</div>
-                    <div className="flex items-center space-x-1">
-                      {getTrendIcon(sampleData.metrics.csatTrend)}
-                      <span className={`text-sm ${getTrendColor(sampleData.metrics.csatTrend)}`}>
-                        {Math.abs(sampleData.metrics.csatTrend)}%
-                      </span>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Responses</p>
+                      <p className="text-2xl font-bold text-gray-900">3,247</p>
+                    </div>
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <Users className="w-6 h-6 text-blue-600" />
                     </div>
                   </div>
-                  <Progress value={sampleData.metrics.csat} className="mt-2" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    from last month
-                  </p>
+                  <div className="mt-4 flex items-center text-sm">
+                    <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+                    <span className="text-green-600">+156 this week</span>
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
-                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-2xl font-bold">{sampleData.metrics.totalResponses.toLocaleString()}</div>
-                    <div className="flex items-center space-x-1">
-                      {getTrendIcon(sampleData.metrics.responseTrend)}
-                      <span className={`text-sm ${getTrendColor(sampleData.metrics.responseTrend)}`}>
-                        {Math.abs(sampleData.metrics.responseTrend)}
-                      </span>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Avg NPS Score</p>
+                      <p className="text-2xl font-bold text-gray-900">42</p>
+                    </div>
+                    <div className="bg-yellow-100 p-3 rounded-full">
+                      <Star className="w-6 h-6 text-yellow-600" />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    this week
-                  </p>
+                  <div className="mt-4 flex items-center text-sm">
+                    <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+                    <span className="text-green-600">+3 from last month</span>
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-2xl font-bold">{sampleData.metrics.responseRate}%</div>
-                    <div className="flex items-center space-x-1">
-                      {getTrendIcon(sampleData.metrics.responseRateTrend)}
-                      <span className={`text-sm ${getTrendColor(sampleData.metrics.responseRateTrend)}`}>
-                        {Math.abs(sampleData.metrics.responseRateTrend)}%
-                      </span>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Response Rate</p>
+                      <p className="text-2xl font-bold text-gray-900">68%</p>
+                    </div>
+                    <div className="bg-purple-100 p-3 rounded-full">
+                      <Target className="w-6 h-6 text-purple-600" />
                     </div>
                   </div>
-                  <Progress value={sampleData.metrics.responseRate} className="mt-2" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    vs industry average
-                  </p>
+                  <div className="mt-4 flex items-center text-sm">
+                    <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
+                    <span className="text-red-600">-2% vs industry</span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Charts Row */}
+            {/* Recent Activity & Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Sentiment Analysis */}
-              <Card className="hover:shadow-md transition-shadow">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Bell className="w-5 h-5 mr-2 text-green-600" />
+                    Recent Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border-l-4 border-red-400">
+                      <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-red-800">VIP customer gave low NPS score</p>
+                        <p className="text-sm text-red-600">5 minutes ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
+                      <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-yellow-800">Negative sentiment spike in "Performance" theme</p>
+                        <p className="text-sm text-yellow-600">1 hour ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                      <CheckCircle className="w-5 h-5 text-blue-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-blue-800">Response rate increased by 12% this week</p>
+                        <p className="text-sm text-blue-600">2 hours ago</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Zap className="w-5 h-5 mr-2 text-green-600" />
+                    Quick Actions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button 
+                      onClick={() => setActiveView('create')}
+                      className="h-20 flex-col space-y-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="w-6 h-6" />
+                      <span>Create Survey</span>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setActiveView('analytics')}
+                      className="h-20 flex-col space-y-2 border-green-200 text-green-700 hover:bg-green-50"
+                    >
+                      <BarChart3 className="w-6 h-6" />
+                      <span>View Analytics</span>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setActiveView('responses')}
+                      className="h-20 flex-col space-y-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                    >
+                      <MessageSquare className="w-6 h-6" />
+                      <span>View Responses</span>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="h-20 flex-col space-y-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+                    >
+                      <Download className="w-6 h-6" />
+                      <span>Export Data</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Live Metrics */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>NPS Trend (Last 6 Months)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="nps" stroke="#00B050" strokeWidth={3} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sentiment Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={sentimentData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        {sentimentData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex justify-center space-x-4 mt-4">
+                    {sentimentData.map((item) => (
+                      <div key={item.name} className="flex items-center">
+                        <div className={`w-3 h-3 rounded-full mr-2`} style={{ backgroundColor: item.color }}></div>
+                        <span className="text-sm">{item.name}: {item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'create' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Survey Creation */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="w-5 h-5 mr-2 text-green-600" />
+                    Survey Information
+                  </CardTitle>
+                  <CardDescription>Basic details about your survey</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Survey Title</label>
+                    <input
+                      type="text"
+                      placeholder="Enter survey title..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      defaultValue="Customer Experience Survey"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea
+                      placeholder="Describe your survey..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-24"
+                      defaultValue="Help us improve our service by sharing your experience and feedback."
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                      <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option>Customer Experience</option>
+                        <option>Product Feedback</option>
+                        <option>Employee Satisfaction</option>
+                        <option>Market Research</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Time</label>
+                      <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option>2-3 minutes</option>
+                        <option>3-5 minutes</option>
+                        <option>5-10 minutes</option>
+                        <option>10+ minutes</option>
+                      </select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Question Generator */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Sparkles className="w-5 h-5 mr-2 text-green-600" />
+                    AI Question Generator
+                  </CardTitle>
+                  <CardDescription>Let AI suggest relevant questions based on your survey goals</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">What do you want to learn?</label>
+                    <textarea
+                      value={aiGoal}
+                      onChange={(e) => setAiGoal(e.target.value)}
+                      placeholder="Describe your survey objectives..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent h-20"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
+                      <select 
+                        value={aiAudience} 
+                        onChange={(e) => setAiAudience(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="existing_customers">Existing Customers</option>
+                        <option value="potential_customers">Potential Customers</option>
+                        <option value="employees">Employees</option>
+                        <option value="website_visitors">Website Visitors</option>
+                        <option value="event_attendees">Event Attendees</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Survey Length</label>
+                      <select 
+                        value={aiLength} 
+                        onChange={(e) => setAiLength(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="short">Short (5-8 questions)</option>
+                        <option value="medium">Medium (10-15 questions)</option>
+                        <option value="long">Long (15+ questions)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={generateQuestionsWithAI}
+                    disabled={isGenerating}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate Questions with AI
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Generated Questions */}
+              {generatedQuestions.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>AI Generated Questions</CardTitle>
+                    <CardDescription>Review and add questions to your survey</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {generatedQuestions.map((question, index) => (
+                        <div key={index} className="p-4 border border-gray-200 rounded-lg">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {question.type.toUpperCase()}
+                                </Badge>
+                              </div>
+                              <p className="font-medium text-gray-900 mb-1">{question.text}</p>
+                              <p className="text-sm text-gray-600">{question.explanation}</p>
+                              {question.options && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-gray-500 mb-1">Options:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {question.options.map((option, optIndex) => (
+                                      <Badge key={optIndex} variant="secondary" className="text-xs">
+                                        {option}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <Button size="sm" variant="outline" className="ml-4">
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Templates */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Templates</CardTitle>
+                  <CardDescription>Start with proven survey templates</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4">
+                    {[
+                      { name: 'Customer Satisfaction', questions: 8, icon: '😊', desc: 'Measure overall customer satisfaction and loyalty' },
+                      { name: 'Product Feedback', questions: 12, icon: '📦', desc: 'Gather insights about product features and usability' },
+                      { name: 'Employee Engagement', questions: 15, icon: '👥', desc: 'Assess workplace satisfaction and engagement levels' },
+                      { name: 'Event Feedback', questions: 6, icon: '🎉', desc: 'Collect feedback from event attendees' }
+                    ].map((template, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-300 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-2xl">{template.icon}</div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">{template.name}</h3>
+                            <p className="text-sm text-gray-600">{template.desc}</p>
+                            <Badge variant="secondary" className="text-xs mt-1">{template.questions} questions</Badge>
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">Use Template</Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Live Preview */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Eye className="w-5 h-5 mr-2 text-green-600" />
+                    Live Preview
+                  </CardTitle>
+                  <CardDescription>See how your survey will look to respondents</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+                    <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <div className="text-center mb-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">Customer Experience Survey</h2>
+                        <p className="text-gray-600 mb-4">Help us improve our service by sharing your experience and feedback.</p>
+                        <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+                          <span>2-3 minutes</span>
+                          <Badge variant="secondary">Customer Experience</Badge>
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                          <span>Progress</span>
+                          <span>0 of 5 questions</span>
+                        </div>
+                        <Progress value={0} className="h-2" />
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="p-4 border border-gray-200 rounded-lg">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <Badge className="bg-green-100 text-green-800">1</Badge>
+                            <span className="font-medium">How likely are you to recommend our service? *</span>
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-600">Not likely</span>
+                            <span className="text-sm text-gray-600">Very likely</span>
+                          </div>
+                          <div className="flex space-x-2">
+                            {[0,1,2,3,4,5,6,7,8,9,10].map(num => (
+                              <button key={num} className="w-8 h-8 border border-gray-300 rounded hover:bg-green-50 hover:border-green-300 text-sm">
+                                {num}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="p-4 border border-gray-200 rounded-lg">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <Badge className="bg-blue-100 text-blue-800">2</Badge>
+                            <span className="font-medium">How satisfied are you with our customer support? *</span>
+                          </div>
+                          <div className="flex space-x-2">
+                            {[1,2,3,4,5].map(num => (
+                              <Star key={num} className="w-8 h-8 text-gray-300 hover:text-yellow-400 cursor-pointer" />
+                            ))}
+                          </div>
+                          <p className="text-sm text-gray-600 mt-2">Click to rate from 1 to 5 stars</p>
+                        </div>
+
+                        <div className="p-4 border border-gray-200 rounded-lg">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <Badge className="bg-purple-100 text-purple-800">3</Badge>
+                            <span className="font-medium">Which features do you use most often?</span>
+                          </div>
+                          <div className="space-y-2">
+                            {['Dashboard', 'Reports', 'Analytics', 'Integrations'].map(option => (
+                              <label key={option} className="flex items-center space-x-2">
+                                <input type="checkbox" className="rounded border-gray-300" />
+                                <span>{option}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+                        <Button variant="outline" disabled>
+                          ← Previous
+                        </Button>
+                        <span className="text-sm text-gray-600">Question 1 of 5</span>
+                        <Button className="bg-green-600 hover:bg-green-700">
+                          Next →
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Survey Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Settings className="w-5 h-5 mr-2 text-green-600" />
+                    Survey Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Response Collection</h4>
+                    <div className="space-y-3">
+                      {[
+                        { label: 'Collect Email Addresses', desc: 'Require respondents to provide email', checked: false },
+                        { label: 'Anonymous Responses', desc: 'Hide respondent identity', checked: true },
+                        { label: 'One Response Per Person', desc: 'Prevent duplicate submissions', checked: true },
+                        { label: 'Show Progress Bar', desc: 'Display completion progress', checked: true }
+                      ].map((setting, index) => (
+                        <label key={index} className="flex items-start space-x-3">
+                          <input type="checkbox" defaultChecked={setting.checked} className="mt-1 rounded border-gray-300" />
+                          <div>
+                            <div className="font-medium text-sm">{setting.label}</div>
+                            <div className="text-xs text-gray-600">{setting.desc}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Distribution</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Survey URL</label>
+                        <div className="flex">
+                          <input 
+                            type="text" 
+                            value="https://engage.sa/survey/customer-experience-2024"
+                            readOnly
+                            className="flex-1 p-2 border border-gray-300 rounded-l-lg bg-gray-50 text-sm"
+                          />
+                          <Button variant="outline" className="rounded-l-none">
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" size="sm">
+                          <Mail className="w-4 h-4 mr-2" />
+                          Share via Email
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Smartphone className="w-4 h-4 mr-2" />
+                          Share via SMS
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Social Media
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Code className="w-4 h-4 mr-2" />
+                          Embed Code
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-3 pt-4 border-t border-gray-200">
+                    <Button variant="outline" className="flex-1">
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Draft
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      <PlayCircle className="w-4 h-4 mr-2" />
+                      Preview
+                    </Button>
+                    <Button className="flex-1 bg-green-600 hover:bg-green-700">
+                      <Send className="w-4 h-4 mr-2" />
+                      Publish
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'analytics' && (
+          <div className="space-y-6">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Net Promoter Score</p>
+                      <p className="text-2xl font-bold text-gray-900">42</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-green-500" />
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-center text-sm">
+                      <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+                      <span className="text-green-600">3</span>
+                      <span className="text-gray-600 ml-1">from last month</span>
+                    </div>
+                    <Progress value={70} className="mt-2 h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Customer Satisfaction</p>
+                      <p className="text-2xl font-bold text-gray-900">85%</p>
+                    </div>
+                    <Star className="w-8 h-8 text-yellow-500" />
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-center text-sm">
+                      <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+                      <span className="text-green-600">2%</span>
+                      <span className="text-gray-600 ml-1">from last month</span>
+                    </div>
+                    <Progress value={85} className="mt-2 h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Responses</p>
+                      <p className="text-2xl font-bold text-gray-900">1,247</p>
+                    </div>
+                    <MessageSquare className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-center text-sm">
+                      <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
+                      <span className="text-green-600">156</span>
+                      <span className="text-gray-600 ml-1">this week</span>
+                    </div>
+                    <Progress value={60} className="mt-2 h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Response Rate</p>
+                      <p className="text-2xl font-bold text-gray-900">68%</p>
+                    </div>
+                    <Users className="w-8 h-8 text-purple-500" />
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex items-center text-sm">
+                      <ArrowDownRight className="w-4 h-4 text-red-500 mr-1" />
+                      <span className="text-red-600">2%</span>
+                      <span className="text-gray-600 ml-1">vs industry average</span>
+                    </div>
+                    <Progress value={68} className="mt-2 h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
                 <CardHeader>
                   <CardTitle>Sentiment Analysis</CardTitle>
-                  <CardDescription>
-                    Overall sentiment distribution from feedback
-                  </CardDescription>
+                  <CardDescription>Overall sentiment distribution from feedback</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={sampleData.sentiment}
+                        data={sentimentData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
                         outerRadius={100}
-                        paddingAngle={5}
                         dataKey="value"
                       >
-                        {sampleData.sentiment.map((entry, index) => (
+                        {sentimentData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value, name, props) => [
-                        `${value}% (${props.payload.count} responses)`, 
-                        name
-                      ]} />
+                      <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="flex justify-center space-x-6 mt-4">
-                    {sampleData.sentiment.map((item) => (
-                      <div key={item.name} className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: item.color }}
-                        ></div>
-                        <span className="text-sm">{item.name}: {item.value}% ({item.count})</span>
+                    {sentimentData.map((item) => (
+                      <div key={item.name} className="flex items-center">
+                        <div className={`w-3 h-3 rounded-full mr-2`} style={{ backgroundColor: item.color }}></div>
+                        <span className="text-sm font-medium">{item.name}: {item.value} ({Math.round(item.value/1247*100)}%)</span>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Top Themes */}
-              <Card className="hover:shadow-md transition-shadow">
+              <Card>
                 <CardHeader>
                   <CardTitle>Top Themes</CardTitle>
-                  <CardDescription>
-                    Most discussed topics in feedback (click to filter)
-                  </CardDescription>
+                  <CardDescription>Most discussed topics in feedback (click to filter)</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={sampleData.themes} layout="horizontal">
+                    <BarChart data={themesData} layout="horizontal">
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={80} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar 
-                        dataKey="count" 
-                        fill="#00B050"
-                        radius={[0, 4, 4, 0]}
-                        cursor="pointer"
-                        onClick={(data) => handleThemeClick(data)}
-                      />
+                      <YAxis dataKey="theme" type="category" width={80} />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#00B050" />
                     </BarChart>
                   </ResponsiveContainer>
-                  {selectedTheme && (
-                    <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-                      <p className="text-sm font-medium">Filtered by: {selectedTheme}</p>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setSelectedTheme(null)}
-                        className="mt-2"
-                      >
-                        Clear filter
-                      </Button>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             </div>
 
-            {/* NPS Trend Chart */}
-            <Card className="hover:shadow-md transition-shadow">
+            {/* NPS Analysis */}
+            <Card>
               <CardHeader>
-                <CardTitle>NPS Trend Over Time</CardTitle>
-                <CardDescription>
-                  Net Promoter Score progression over the last 6 months
-                </CardDescription>
+                <CardTitle>NPS Question: "How likely are you to recommend our service?"</CardTitle>
+                <CardDescription>1,247 responses • Score distribution</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={sampleData.npsOverTime}>
-                    <defs>
-                      <linearGradient id="npsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00B050" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#00B050" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
+                  <BarChart data={npsData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip formatter={(value, name) => [value, 'NPS Score']} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="#00B050" 
-                      strokeWidth={2}
-                      fill="url(#npsGradient)" 
-                    />
-                  </AreaChart>
+                    <XAxis dataKey="score" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#00B050" />
+                  </BarChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Recent Feedback */}
-            <Card className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle>Live Feedback Feed</CardTitle>
-                <CardDescription>
-                  Most recent survey responses
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {sampleData.recentFeedback.map((feedback) => (
-                    <div key={feedback.id} className="flex items-start space-x-4 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer">
-                      <div className="flex-shrink-0">
-                        {getSentimentIcon(feedback.sentiment)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-foreground">{feedback.text}</p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
-                          <span>{feedback.user}</span>
-                          <span>{feedback.time}</span>
-                          <Badge variant="outline" size="sm">
-                            NPS: {feedback.nps}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Question Breakdown Tab */}
-          <TabsContent value="breakdown" className="space-y-6">
-            {/* Question Selector */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Question Analysis</CardTitle>
-                <CardDescription>
-                  Detailed breakdown of responses by question
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Question List */}
-                  <div className="space-y-3">
-                    <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Survey Questions</h3>
-                    {[
-                      { id: 1, text: "How likely are you to recommend our service?", type: "nps", responses: 1247 },
-                      { id: 2, text: "How satisfied are you with our customer support?", type: "rating", responses: 1134 },
-                      { id: 3, text: "Which features do you use most frequently?", type: "multiple", responses: 1089 },
-                      { id: 4, text: "How would you rate our pricing?", type: "rating", responses: 1156 },
-                      { id: 5, text: "What improvements would you like to see?", type: "text", responses: 892 }
-                    ].map((question) => (
-                      <Card key={question.id} className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary/20 hover:border-l-primary">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">{question.text}</p>
-                              <div className="flex items-center space-x-4 mt-2">
-                                <Badge variant="outline" size="sm">
-                                  {question.type.toUpperCase()}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                  {question.responses} responses
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                <div className="flex justify-center space-x-8 mt-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">198</div>
+                    <div className="text-sm text-gray-600">Detractors (0-6)</div>
                   </div>
-
-                  {/* Question Analysis */}
-                  <div className="lg:col-span-2 space-y-6">
-                    {/* NPS Question Analysis */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">NPS Question: "How likely are you to recommend our service?"</CardTitle>
-                        <CardDescription>1,247 responses • Score distribution</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={[
-                            { score: '0', count: 12, category: 'Detractor' },
-                            { score: '1', count: 8, category: 'Detractor' },
-                            { score: '2', count: 15, category: 'Detractor' },
-                            { score: '3', count: 23, category: 'Detractor' },
-                            { score: '4', count: 31, category: 'Detractor' },
-                            { score: '5', count: 42, category: 'Detractor' },
-                            { score: '6', count: 67, category: 'Detractor' },
-                            { score: '7', count: 156, category: 'Passive' },
-                            { score: '8', count: 234, category: 'Passive' },
-                            { score: '9', count: 312, category: 'Promoter' },
-                            { score: '10', count: 347, category: 'Promoter' }
-                          ]}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="score" />
-                            <YAxis />
-                            <Tooltip formatter={(value, name, props) => [
-                              `${value} responses`, 
-                              `Score ${props.payload.score} (${props.payload.category})`
-                            ]} />
-                            <Bar 
-                              dataKey="count" 
-                              fill={(entry) => {
-                                if (entry.category === 'Promoter') return '#00B050'
-                                if (entry.category === 'Passive') return '#94A3B8'
-                                return '#EF4444'
-                              }}
-                              radius={[4, 4, 0, 0]}
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
-                        <div className="flex justify-center space-x-6 mt-4">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                            <span className="text-sm">Detractors (0-6): 198</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                            <span className="text-sm">Passives (7-8): 390</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-green-600"></div>
-                            <span className="text-sm">Promoters (9-10): 659</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Customer Support Rating */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Support Satisfaction: "How satisfied are you with our customer support?"</CardTitle>
-                        <CardDescription>1,134 responses • 5-point scale</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={250}>
-                          <BarChart data={[
-                            { rating: 'Very Unsatisfied', count: 45, percentage: 4.0 },
-                            { rating: 'Unsatisfied', count: 67, percentage: 5.9 },
-                            { rating: 'Neutral', count: 189, percentage: 16.7 },
-                            { rating: 'Satisfied', count: 456, percentage: 40.2 },
-                            { rating: 'Very Satisfied', count: 377, percentage: 33.2 }
-                          ]}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="rating" angle={-45} textAnchor="end" height={80} />
-                            <YAxis />
-                            <Tooltip formatter={(value, name, props) => [
-                              `${value} responses (${props.payload.percentage}%)`, 
-                              props.payload.rating
-                            ]} />
-                            <Bar dataKey="count" fill="#00B050" radius={[4, 4, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-
-                    {/* Feature Usage */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Feature Usage: "Which features do you use most frequently?"</CardTitle>
-                        <CardDescription>1,089 responses • Multiple selection allowed</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={[
-                            { feature: 'Dashboard', count: 892, percentage: 81.9 },
-                            { feature: 'Reports', count: 678, percentage: 62.3 },
-                            { feature: 'Analytics', count: 567, percentage: 52.1 },
-                            { feature: 'Integrations', count: 445, percentage: 40.9 },
-                            { feature: 'API Access', count: 234, percentage: 21.5 },
-                            { feature: 'Mobile App', count: 189, percentage: 17.4 }
-                          ]} layout="horizontal">
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" />
-                            <YAxis dataKey="feature" type="category" width={100} />
-                            <Tooltip formatter={(value, name, props) => [
-                              `${value} users (${props.payload.percentage}%)`, 
-                              props.payload.feature
-                            ]} />
-                            <Bar dataKey="count" fill="#00B050" radius={[0, 4, 4, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-600">390</div>
+                    <div className="text-sm text-gray-600">Passives (7-8)</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">659</div>
+                    <div className="text-sm text-gray-600">Promoters (9-10)</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+          </div>
+        )}
 
-            {/* Cross-Tabulation Analysis */}
+        {activeView === 'responses' && (
+          <div className="space-y-6">
+            {/* Filters */}
             <Card>
-              <CardHeader>
-                <CardTitle>Cross-Tabulation Analysis</CardTitle>
-                <CardDescription>
-                  Analyze relationships between different survey questions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* NPS vs Support Satisfaction */}
-                  <div>
-                    <h3 className="font-medium mb-4">NPS Score vs Support Satisfaction</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={[
-                        { satisfaction: 'Very Unsatisfied', avgNPS: 2.1, responses: 45 },
-                        { satisfaction: 'Unsatisfied', avgNPS: 3.8, responses: 67 },
-                        { satisfaction: 'Neutral', avgNPS: 6.2, responses: 189 },
-                        { satisfaction: 'Satisfied', avgNPS: 8.1, responses: 456 },
-                        { satisfaction: 'Very Satisfied', avgNPS: 9.3, responses: 377 }
-                      ]}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="satisfaction" angle={-45} textAnchor="end" height={80} />
-                        <YAxis domain={[0, 10]} />
-                        <Tooltip formatter={(value, name, props) => [
-                          `Avg NPS: ${value}`, 
-                          `${props.payload.satisfaction} (${props.payload.responses} responses)`
-                        ]} />
-                        <Bar dataKey="avgNPS" fill="#00B050" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Feature Usage vs NPS */}
-                  <div>
-                    <h3 className="font-medium mb-4">Feature Usage vs Average NPS</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={[
-                        { feature: 'Dashboard', avgNPS: 7.8, users: 892 },
-                        { feature: 'Reports', avgNPS: 8.2, users: 678 },
-                        { feature: 'Analytics', avgNPS: 8.5, users: 567 },
-                        { feature: 'Integrations', avgNPS: 7.1, users: 445 },
-                        { feature: 'API Access', avgNPS: 9.1, users: 234 },
-                        { feature: 'Mobile App', avgNPS: 6.8, users: 189 }
-                      ]} layout="horizontal">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" domain={[0, 10]} />
-                        <YAxis dataKey="feature" type="category" width={80} />
-                        <Tooltip formatter={(value, name, props) => [
-                          `Avg NPS: ${value}`, 
-                          `${props.payload.feature} (${props.payload.users} users)`
-                        ]} />
-                        <Bar dataKey="avgNPS" fill="#00B050" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Responses Tab */}
-          <TabsContent value="responses" className="space-y-6">
-            {/* Filters and Search */}
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Raw Responses</CardTitle>
-                    <CardDescription>
-                      Searchable and filterable response data ({sampleData.recentFeedback.length + 95} total responses)
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Raw Responses</h3>
+                  <div className="flex items-center space-x-3">
                     <Button variant="outline" size="sm">
                       <Filter className="w-4 h-4 mr-2" />
                       Filter
@@ -696,149 +999,103 @@ function App() {
                     </Button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {/* Search and Filter Controls */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex items-center space-x-4">
                   <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <input
-                        type="text"
-                        placeholder="Search responses..."
-                        className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search responses..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
                   </div>
-                  <div className="flex gap-2">
-                    <select className="px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                      <option>All Sentiments</option>
-                      <option>Positive</option>
-                      <option>Neutral</option>
-                      <option>Negative</option>
-                    </select>
-                    <select className="px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                      <option>All NPS Scores</option>
-                      <option>Promoters (9-10)</option>
-                      <option>Passives (7-8)</option>
-                      <option>Detractors (0-6)</option>
-                    </select>
-                    <select className="px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                      <option>Last 30 days</option>
-                      <option>Last 7 days</option>
-                      <option>Last 24 hours</option>
-                      <option>Custom range</option>
-                    </select>
-                  </div>
+                  <select className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option>All Sentiments</option>
+                    <option>Positive</option>
+                    <option>Neutral</option>
+                    <option>Negative</option>
+                  </select>
+                  <select className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option>All NPS Scores</option>
+                    <option>Promoters (9-10)</option>
+                    <option>Passives (7-8)</option>
+                    <option>Detractors (0-6)</option>
+                  </select>
+                  <select className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option>Last 30 days</option>
+                    <option>Last 7 days</option>
+                    <option>Last 24 hours</option>
+                    <option>Custom range</option>
+                  </select>
                 </div>
+              </CardContent>
+            </Card>
 
-                {/* Data Table */}
-                <div className="border border-border rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Response ID
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Date & Time
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            User
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            NPS Score
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Sentiment
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Feedback
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Actions
-                          </th>
+            {/* Responses Table */}
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Response ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NPS Score</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sentiment</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feedback</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {responses.map((response, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{response.id}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{response.date}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{response.user}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Badge className={`${
+                              response.nps >= 9 ? 'bg-green-100 text-green-800' :
+                              response.nps >= 7 ? 'bg-gray-100 text-gray-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {response.nps}/10
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className={`w-2 h-2 rounded-full mr-2 ${
+                                response.sentiment === 'Positive' ? 'bg-green-500' :
+                                response.sentiment === 'Negative' ? 'bg-red-500' :
+                                'bg-gray-500'
+                              }`}></div>
+                              <span className="text-sm text-gray-900">{response.sentiment}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{response.feedback}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex items-center space-x-2">
+                              <Button variant="outline" size="sm">
+                                <Eye className="w-3 h-3" />
+                              </Button>
+                              <Button variant="outline" size="sm">
+                                <Edit3 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-border">
-                        {[
-                          ...sampleData.recentFeedback,
-                          { id: 6, text: "The mobile app needs better offline functionality", sentiment: 'negative', user: 'User #pQ4rS7tU', time: '18 minutes ago', nps: 5, date: '2024-06-15 14:42' },
-                          { id: 7, text: "Excellent integration with our existing tools", sentiment: 'positive', user: 'User #vW8xY1zA', time: '22 minutes ago', nps: 9, date: '2024-06-15 14:38' },
-                          { id: 8, text: "Documentation could be more comprehensive", sentiment: 'neutral', user: 'User #bC3dE6fG', time: '25 minutes ago', nps: 7, date: '2024-06-15 14:35' },
-                          { id: 9, text: "Love the new dashboard design, very intuitive", sentiment: 'positive', user: 'User #hI9jK2lM', time: '28 minutes ago', nps: 10, date: '2024-06-15 14:32' },
-                          { id: 10, text: "Billing process is confusing and needs improvement", sentiment: 'negative', user: 'User #nO5pQ8rS', time: '32 minutes ago', nps: 4, date: '2024-06-15 14:28' }
-                        ].map((response) => (
-                          <tr key={response.id} className="hover:bg-muted/25 transition-colors">
-                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                              #{response.id.toString().padStart(4, '0')}
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                              {response.date || '2024-06-15 15:' + (60 - response.id * 2).toString().padStart(2, '0')}
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                              {response.user}
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <Badge 
-                                variant={response.nps >= 9 ? "default" : response.nps >= 7 ? "secondary" : "destructive"}
-                                className={response.nps >= 9 ? "bg-primary" : response.nps >= 7 ? "bg-gray-500" : "bg-red-500"}
-                              >
-                                {response.nps}/10
-                              </Badge>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap">
-                              <div className="flex items-center space-x-2">
-                                {getSentimentIcon(response.sentiment)}
-                                <span className={`text-sm capitalize ${getSentimentColor(response.sentiment)}`}>
-                                  {response.sentiment}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 text-sm text-foreground max-w-md">
-                              <div className="truncate" title={response.text}>
-                                {response.text}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 whitespace-nowrap text-sm">
-                              <div className="flex space-x-2">
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MessageSquare className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <Download className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-muted-foreground">
-                    Showing 1 to 10 of 100 results
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" disabled>
-                      Previous
-                    </Button>
-                    <Button variant="outline" size="sm" className="bg-primary text-primary-foreground">
-                      1
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      2
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      3
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Next
-                    </Button>
+                <div className="px-6 py-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">Showing 1-5 of 100 responses</p>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm" disabled>Previous</Button>
+                      <Button variant="outline" size="sm" className="bg-green-600 text-white">1</Button>
+                      <Button variant="outline" size="sm">2</Button>
+                      <Button variant="outline" size="sm">3</Button>
+                      <Button variant="outline" size="sm">Next</Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -848,99 +1105,70 @@ function App() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Response Volume</CardTitle>
-                  <CardDescription>Daily response count over time</CardDescription>
+                  <CardTitle>Response Volume</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={[
-                      { date: '06/10', responses: 45 },
-                      { date: '06/11', responses: 52 },
-                      { date: '06/12', responses: 38 },
-                      { date: '06/13', responses: 61 },
-                      { date: '06/14', responses: 47 },
-                      { date: '06/15', responses: 58 }
-                    ]}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
+                  <ResponsiveContainer width="100%" height={150}>
+                    <AreaChart data={trendData}>
+                      <Area type="monotone" dataKey="nps" stroke="#00B050" fill="#00B050" fillOpacity={0.3} />
+                      <XAxis dataKey="month" />
                       <Tooltip />
-                      <Line type="monotone" dataKey="responses" stroke="#00B050" strokeWidth={2} />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Response Quality</CardTitle>
-                  <CardDescription>Average response length and completeness</CardDescription>
+                  <CardTitle>Response Quality</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Avg. Response Length</span>
-                      <span className="font-medium">127 characters</span>
-                    </div>
-                    <Progress value={75} />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Completion Rate</span>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Complete Responses</span>
                       <span className="font-medium">94%</span>
                     </div>
-                    <Progress value={94} />
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Quality Score</span>
-                      <span className="font-medium">8.2/10</span>
+                    <Progress value={94} className="h-2" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Avg. Response Time</span>
+                      <span className="font-medium">2.3 min</span>
                     </div>
-                    <Progress value={82} />
+                    <Progress value={76} className="h-2" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Text Quality Score</span>
+                      <span className="font-medium">8.7/10</span>
+                    </div>
+                    <Progress value={87} className="h-2" />
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Top Keywords</CardTitle>
-                  <CardDescription>Most mentioned terms in responses</CardDescription>
+                  <CardTitle>Top Keywords</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {[
-                      { word: 'support', count: 89, trend: 'up' },
-                      { word: 'dashboard', count: 67, trend: 'up' },
-                      { word: 'pricing', count: 54, trend: 'down' },
-                      { word: 'features', count: 43, trend: 'up' },
-                      { word: 'performance', count: 38, trend: 'down' },
-                      { word: 'integration', count: 29, trend: 'up' }
-                    ].map((keyword) => (
-                      <div key={keyword.word} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-primary rounded-full"></div>
-                          <span className="text-sm font-medium">{keyword.word}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-muted-foreground">{keyword.count}</span>
-                          {keyword.trend === 'up' ? (
-                            <TrendingUp className="w-3 h-3 text-green-600" />
-                          ) : (
-                            <TrendingDown className="w-3 h-3 text-red-600" />
-                          )}
-                        </div>
+                      { word: 'excellent', count: 89 },
+                      { word: 'slow', count: 67 },
+                      { word: 'helpful', count: 54 },
+                      { word: 'confusing', count: 43 },
+                      { word: 'intuitive', count: 38 }
+                    ].map((keyword, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-sm text-gray-900">{keyword.word}</span>
+                        <Badge variant="secondary">{keyword.count}</Badge>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </main>
     </div>
   )
 }
-
-export default App
 
