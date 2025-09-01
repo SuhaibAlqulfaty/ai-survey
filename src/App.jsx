@@ -59,7 +59,9 @@ import {
   Calendar,
   FileText,
   Edit3,
-  PlayCircle
+  PlayCircle,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react'
 import './App.css'
 
@@ -796,6 +798,10 @@ export default function App() {
                       <PlayCircle className="w-4 h-4 mr-2" />
                       Preview
                     </Button>
+                    <Button variant="outline" className="flex-1" onClick={() => setActiveView('test-survey')}>
+                      <Target className="w-4 h-4 mr-2" />
+                      Test Survey
+                    </Button>
                     <Button className="flex-1 bg-green-600 hover:bg-green-700">
                       <Send className="w-4 h-4 mr-2" />
                       Publish
@@ -804,6 +810,99 @@ export default function App() {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        )}
+
+        {activeView === 'test-survey' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Test Survey - Customer Experience Survey</CardTitle>
+                    <CardDescription>Preview and test your survey before publishing</CardDescription>
+                  </div>
+                  <Button variant="outline" onClick={() => setActiveView('create')}>
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Editor
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="max-w-2xl mx-auto">
+                  {/* Survey Test Interface */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-8">
+                    <div className="text-center mb-8">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Customer Experience Survey</h2>
+                      <p className="text-gray-600">Help us improve our service by sharing your experience</p>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-8">
+                      <div className="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Question 1 of 4</span>
+                        <span>25% Complete</span>
+                      </div>
+                      <Progress value={25} className="h-2" />
+                    </div>
+
+                    {/* NPS Question */}
+                    <div className="mb-8">
+                      <h3 className="text-lg font-medium text-gray-900 mb-6">
+                        How likely are you to recommend our service to a friend or colleague?
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>Not at all likely</span>
+                          <span>Extremely likely</span>
+                        </div>
+                        <div className="flex space-x-2 justify-center">
+                          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(score => (
+                            <button
+                              key={score}
+                              className="w-12 h-12 rounded-lg border-2 border-gray-300 text-gray-700 hover:border-green-500 hover:bg-green-50 transition-all duration-200 font-medium"
+                            >
+                              {score}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Navigation */}
+                    <div className="flex justify-between pt-6 border-t border-gray-200">
+                      <Button variant="outline" disabled>
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Previous
+                      </Button>
+                      <Button className="bg-green-600 hover:bg-green-700">
+                        Next
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Test Controls */}
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        <span className="text-sm font-medium text-blue-900">Test Mode Active</span>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">Reset Test</Button>
+                        <Button variant="outline" size="sm" onClick={() => setActiveView('create')}>
+                          Exit Test
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-sm text-blue-700 mt-2">
+                      This is a preview of your survey. Test all functionality before publishing.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
